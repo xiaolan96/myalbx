@@ -1,5 +1,7 @@
 // 引入user表的控制器
 const pagesController = require("../controllers/pagesController.js");
+const postsController = require("../controllers/postsController");
+const cateController = require("../controllers/cateController");
 // 引入express模块
 const express = require("express");
 // 引入路由
@@ -17,5 +19,25 @@ router
 
   // 后台管理页面，统一添加admin作为前缀
 
-  .get("/admin", pagesController.getAdminPage);
+  .get("/admin", pagesController.getAdminPage)
+  .get("/admin/categories", pagesController.getCategoriesPage)
+  .get("/admin/comments", pagesController.getCommentsPage)
+  .get("/admin/login", pagesController.getLoginPage)
+  .get("/admin/nav-menus", pagesController.getNavMenusPage)
+  .get("/admin/password-reset", pagesController.getPassWordPage)
+  .get("/admin/post-add", pagesController.getPostAddPage)
+  .get("/admin/posts", pagesController.getPostsPage)
+  .get("/admin/profile", pagesController.getProfilePage)
+  .get("/admin/settings", pagesController.getSettingsPage)
+  .get("/admin/slides", pagesController.getSlidesPage)
+  .get("/admin/users", pagesController.getUsersPage)
+
+  //业务处理
+  // 1.获取所有与文章数据
+  .get("/getPostList", postsController.getPostList)
+  .get("delPostById", postsController.delPostById)
+
+  // 2.获取所有分类数据
+  .get("/getAllCateList", cateController.getAllcateList);
+
 module.exports = router;

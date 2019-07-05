@@ -1,94 +1,103 @@
-$(function () {
-    // 将pageNum和pageSize做为全局变量，以便让其它的事件操作来修改这个属性值
-    var pageSize = 4
-    var pageNum = 1
-    // 发起ajax获取所有文章数据
-    function initData(query={}) {
-        console.log({pageNum,pageSize,...query})
-        $.ajax({
-            type: 'get',
-            url: '/getAllPostList',
-            // data:$.extend({},query)
-            data: {
-                pageNum,
-                pageSize,
-                ...query
-            },
-            dataType: 'json',
-            success: function (result) {
-                // console.log(result)
-                // 生成数据列表动态结构
-                var html = template('postListTemp', result.data)
-                $('tbody').html(html)
-                // 还要生成分页结构
-                if(Math.ceil(result.data.total / pageSize) != 0){
-                    setPagnator(Math.ceil(result.data.total / pageSize))
-                }
-            }
-        })
+$(function() {
+  // 当前页码
+  var pagenum = 1;
+  // 每页显示的记录数
+  var pagesize = 2;
+
+  // 发起ajax请求，请求所有文章数据
+  init({});
+
+  // 实现用户数据的筛选
+  $(".btn-search").on("click", function() {
+    // 重点获取用户数据，你也可以使用全局变量
+    var query = {};
+    // 判断用户有没有选择指定的筛选条件
+    if ($(".cateSelector").val() != "all") {
+      query.cate = $(".cateSelector").val();
     }
-    initData();
-
-    // 加载分类下拉列表数据
-    (function () {
-        $.ajax({
-            type: 'get',
-            url: '/getCategories',
-            dataType: 'json',
-            success: function (result) {
-                console.log(result)
-                // 调用模块引擎生成动态结构
-                // 直接拼接字符串
-                var html = '<option value="all">所有分类</option>'
-                for (var i = 0; i < result.length; i++) {
-                    html += `<option value="${result[i].id}">${result[i].name}</option>`
-                }
-                $('.cateSelector').html(html)
-            }
-        })
-    })()
-
-    // 生成分页结构并实现分页业务逻辑
-    // - bootstrapMajorVersion：重要属性，必须正确的设置，如果错误后期不能生成分页结构。我们现在用的bootstrap是3.3.7，所以对应的分页区域的结构要使用ul
-    // - currentPage:当前页码，这个页码后期需要传递给后台进行查询操作
-    // - totalPages：总页数，没有总页面如何生成对应的分页结构呢
-    // - onPageClicked：点击分页结构中的页码标签的时候所触发的事件
-    function setPagnator(total) {
-        // 进行分页结构的初始化，并提供相关配置
-        $('.pagination').bootstrapPaginator({
-            bootstrapMajorVersion: 3,
-            currentPage: pageNum,
-            // totalPages：会根据这值生成分页单击按钮
-            totalPages: total,
-            onPageClicked: function (event, originalEvent, type, page) {
-                // page就是当前需要获取数据的页码
-                console.log(page)
-                // 修改全局的pageNum,以让我重新发起数据请求的时候能够获取到指定页码的数据
-                pageNum = page
-                // 再次获取数据
-                initData()
-            }
-        })
+    if ($(".statuSelector").val() != "all") {
+      query.statu = $(".statuSelector").val();
     }
+    // 发起请求
+    init(query);
+    // console.log(query.cate, query.statu);
+  });
 
+  // 使用一个自调用函数来实现分类数据的加载
+  (function() {
+    $.ajax({
+      type: "get",
+      url: "/getAllCateList",
+      success: function(res) {
+        // 生成分类数据的动态结构
 
-    // 点击筛选实现数据的筛选
-    $('.btnFilter').on('click',function(){
-        var query = {}
-        // 收集用户数据--筛选条件
-        var cate = $('.cateSelector').val()
-        var statu = $('.statuSelector').val()
-        console.log(cate,statu)
-        // 如果获取到的value是all，说明用户并没有选择这个条件
-        if(cate != 'all'){
-            query['category_id'] = cate
+        var html = '<option value="all">所有分类</option>';
+        for (var i = 0; i < res.data.length; i++) {
+          html += `<option value="${res.data[i].id}">${
+            res.data[i].name
+          }</option>`;
         }
-        if(statu != 'all'){
-            query['status'] = statu
+        $(".cateSelector").html(html);
+      }
+    });
+  })();
+
+  // 数据初始化
+  function init(query) {
+    $.ajax({
+      type: "get",
+      url: "/getPostList",
+      data: {
+        pagenum: pagenum,
+        pagesize: pagesize,
+        ...query
+      },
+      dataType: "json",
+      success: function(res) {
+        // 生成文章数据结构
+        var html = template("postListTemp", res.data);
+        $("tbody").html(html);
+        // 生成分页结构
+        setPage(Math.ceil(res.data.total / pagesize));
+        console.log(res);
+      }
+    });
+  }
+
+  // 实现分页
+  function setPage(count) {
+    $(".pagination").bootstrapPaginator({
+      // 设置版本号
+      bootstrapMajorVersion: 3,
+      // 设置当前页
+      currentPage: pagenum,
+      // 总页数：当前数据表的记录总数 / 每页所显示的记录数
+      totalPages: count,
+      // 当单击页码按钮的时候，执行该函数，调用ajax渲染页面
+      onPageClicked: function(event, originalEvent, type, page) {
+        // 我们发现，这个page就是当前的合理页码值，我们只需要将全局的pagenem重置，并且重新获取数据可以了
+        pagenum = page;
+        // 重新获取数据
+        init();
+      }
+    });
+  }
+
+  // 使用时间委托的方式来实现文章数据的删除
+  $("tbody").on("click", ".btndel", function() {
+    // 添加删除确认对话框
+    // confirm返回一个bool值，如果你被单击了确定，就是true,否则就是false
+    if (window.confirm("你是否真的需要删除？")) {
+      // 获取id
+      var id = $(this).data("id");
+      $.ajax({
+        type: "get",
+        url: "/delPostById",
+        data: { id: id },
+        success: res => {
+          console.log(res);
         }
-        console.log(query)
-        // 根据条件获取数据
-        initData(query)
-    })
+      });
+    }
+  });
 });
-
