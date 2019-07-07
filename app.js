@@ -1,9 +1,11 @@
 // 1.引入express
 const express = require("express");
+const session = require("express-session");
 // 引入路由模块
 const router = require("./router/router.js");
 // 引入ejs
 const ejs = require("ejs");
+const querystring = require("querystring");
 //引入body-parser
 const bodyParser = require("body-parser");
 // 2.创建应用
@@ -22,9 +24,35 @@ app.set("views", "views");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// 让app应用使用session的方式来进行状态保持
+app.use(
+  // 对session加密：加盐，可以设置一个只有你自己知道的字符串
+  // md5加密
+  session({
+    secret: "keyboard cat",
+    //重新保存：强制会话保存即使是未修改的。默认为true但是得写上
+    resave: false,
+    //强制“未初始化”的会话保存到存储。
+    saveUninitialized: false
+  })
+);
+
 // 4.添加静态资源的托管
 app.use("/assets", express.static("assets"));
 app.use("/uploads", express.static("uploads"));
+
+// 下面这个中间件，在每次请求时都会经过
+app.use(function(req, res, next) {
+  if (
+    (req.session.isLogin && req.session.isLogin == "true") ||
+    req.url == "/admin/login" ||
+    req.url.indexOf("/admin") == -1
+  ) {
+    next();
+  } else {
+    res.redirect("/admin/login");
+  }
+});
 
 // 5.添加路由配置
 // use:让app应用来使用这个路由进行所有的用户请求的路由管理,这个views目录 是相对于根目录 而言

@@ -39,3 +39,14 @@ exports.delPostById = (req, res) => {
     }
   });
 };
+
+// 实现文章的新增
+exports.addPost = (req, res) => {
+  // 接收参数
+  var obj = req.body;
+  obj.views = 0;
+  obj.likes = 0;
+  obj.user_id = req.session.currentUser.id;
+  console.log("0000000000000");
+  console.log(req.session.currentUser);
+};

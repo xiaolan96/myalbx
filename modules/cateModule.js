@@ -1,15 +1,5 @@
 // 所有与分类表相关的操作都在这个文件中完成
-
-// 1.引入mysql
-var mysql = require("mysql");
-// 2.创建连接
-var connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "123456",
-  database: "baixiu",
-  dateStrings: true
-});
+const connection = require("./commModule");
 
 // 获取所有分类数据
 exports.getAllCateList = callback => {

@@ -2,6 +2,8 @@
 const pagesController = require("../controllers/pagesController.js");
 const postsController = require("../controllers/postsController");
 const cateController = require("../controllers/cateController");
+const uploadController = require("../controllers/uploadController");
+const usersController = require("../controllers/usersController");
 // 引入express模块
 const express = require("express");
 // 引入路由
@@ -35,9 +37,16 @@ router
   //业务处理
   // 1.获取所有与文章数据
   .get("/getPostList", postsController.getPostList)
-  .get("delPostById", postsController.delPostById)
+  .get("/delPostById", postsController.delPostById)
+  .post("/addPost", postsController.addPost)
 
   // 2.获取所有分类数据
-  .get("/getAllCateList", cateController.getAllcateList);
+  .get("/getAllCateList", cateController.getAllcateList)
+
+  // 文件上传
+  .post("/uploadFile", uploadController.uploadFile)
+
+  // 用户登录
+  .post("/login", usersController.login);
 
 module.exports = router;

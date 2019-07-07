@@ -1,14 +1,4 @@
-// 1.引入mysql
-var mysql = require("mysql");
-// 2.创建链接
-var connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "123456",
-  database: "baixiu",
-  dateStrings: true
-});
-// 3.打开链接--不用写，他会默认找到最近所创建的连接来使用
+const connection = require("./commModule");
 
 // 获取所有文章数据
 /******
@@ -33,12 +23,12 @@ exports.getPostList = (params, callback) => {
   }
   sql += ` order by posts.id desc limit ${(params.pagenum - 1) *
     params.pagesize},${params.pagesize} `;
-
   connection.query(sql, (err, results) => {
     if (err) {
       console.log(err);
       callback(err);
     } else {
+      console.log(results);
       sql = "select count(*) cnt from posts";
       // callback(null, results);
       connection.query(sql, (err1, data1) => {
